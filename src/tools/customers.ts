@@ -54,10 +54,10 @@ export function registerCustomerTools(server: McpServer) {
     "get_customer_by_email",
     "Kunden anhand einer E-Mail-Adresse suchen.",
     {
-      mail: z.string().describe("E-Mail-Adresse"),
+      email: z.string().describe("E-Mail-Adresse"),
     },
-    async ({ mail }) => {
-      const data = await apiPost("/api2/do/function/GetCustomerByMail", { mail });
+    async ({ email }) => {
+      const data = await apiPost("/api2/do/function/GetCustomerByMail", { email });
       return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
     }
   );

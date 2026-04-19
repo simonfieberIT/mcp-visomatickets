@@ -13,9 +13,14 @@ export function registerRmmTools(server: McpServer) {
   server.tool("create_rmm_check", "Fehlgeschlagenen RMM-Check melden.",
     {
       sync_id: z.string().describe("ID aus dem RMM-System (Pflicht)"),
-      sync_source: z.number().describe("Erlaubte Werte: 1, 2, 3, 4 (Pflicht)"),
+      sync_source: z.number().describe("Erlaubte Werte: 1=Extern, 2=visoma, 3=N-able, 4=Riverboard (Pflicht)"),
+      message: z.string().describe("Fehlermeldung / Nachricht der Meldung (Pflicht)"),
+      statusid: z.number().describe("Status: 1=grün, 2=gelb, 3=orange, 4=rot (Pflicht)"),
       customerid: z.number().optional(),
       ticketid: z.number().optional(),
+      clientid: z.number().optional().describe("Kunden-ID aus dem Drittsystem"),
+      deviceid: z.number().optional(),
+      catid: z.number().optional(),
     },
     async (body) => {
       const data = await apiPost("/api2/rmmfailedcheck/", body);
@@ -29,10 +34,12 @@ export function registerRmmTools(server: McpServer) {
       return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
     }
   );
-  server.tool("clear_rmm_check", "RMM-Check zurücksetzen.",
+  server.tool("clear_rmm_check", "RMM-Check zurücksetzen (als behoben markieren).",
     {
-      sync_id: z.string(),
-      sync_source: z.string(),
+      id: z.number().describe("Datenbank-ID des RMM-Checks (Pflicht)"),
+      clear_until: z.string().optional().describe("Bis wann zurücksetzen: yyyy-mm-dd hh:ii:00"),
+      private_note: z.string().optional().describe("Interne Notiz"),
+      public_note: z.string().optional().describe("Öffentliche Notiz"),
     },
     async (body) => {
       const data = await apiPost("/api2/do/function/clearRmmFailedcheck", body);

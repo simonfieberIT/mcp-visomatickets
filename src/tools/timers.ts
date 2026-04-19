@@ -1,6 +1,8 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { apiGet, apiPost, apiPut, buildFilterPath } from "../client.js";
+import { apiGet, apiPost, apiPut, buildFilterPath, getBasicAuthHeaders } from "../client.js";
+
+const BASE_URL = process.env.VISOMA_BASE_URL?.replace(/\/$/, "");
 
 export function registerTimerTools(server: McpServer) {
   server.tool(
@@ -55,13 +57,32 @@ export function registerTimerTools(server: McpServer) {
 
   server.tool(
     "start_timer",
-    "Laufenden Timer starten.",
+    "Laufenden Timer für einen Benutzer starten (Visoma /api2/Timer/start/). Erfordert VISOMA_USERNAME und VISOMA_PASSWORD. Hinweis: Dieser Endpoint erfordert eine aktive Visoma-Browser-Session und liefert 401, wenn der Benutzer nicht über die nötigen Berechtigungen verfügt. Als Alternative kann create_timer mit Start=jetzt und einer geschätzten Stop-Zeit verwendet werden.",
     {
-      TicketId: z.number().describe("Ticket-ID"),
-      UserId: z.number().describe("Benutzer-ID"),
+      ticketid: z.number().optional().describe("Ticket-ID"),
+      description: z.string().optional().describe("Beschreibung (Standard: 'Via visoma tickets gestartet und noch nicht beendet.')"),
+      typeid: z.number().optional().describe("Timertyp-ID"),
+      deviceid: z.number().optional().describe("Geräte-ID"),
+      contractid: z.number().optional().describe("Vertrags-ID"),
     },
     async (body) => {
-      const data = await apiPost("/api2/Timer/start/", body);
+      const headers = { ...getBasicAuthHeaders(), "Content-Type": "application/json" };
+      const url = new URL(`${BASE_URL}/api2/Timer/start/`);
+      const res = await fetch(url.toString(), {
+        method: "POST",
+        headers,
+        body: JSON.stringify(body),
+      });
+      if (res.status === 401) {
+        throw new Error(
+          "401 Unauthorized: Der Visoma-Benutzer hat keine Berechtigung für /api2/Timer/start/. " +
+          "Dieser Endpoint erfordert eine aktive Browser-Session. " +
+          "Alternative: create_timer mit Start=jetzt und einer vorläufigen Stop-Zeit verwenden."
+        );
+      }
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText} for POST /api2/Timer/start/`);
+      const data = await res.json() as { Success?: boolean; Message?: string };
+      if (data.Success === false) throw new Error(`Visoma API error: ${data.Message ?? "Unknown error"}`);
       return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
     }
   );

@@ -22,6 +22,7 @@ import { registerChecklistTools } from "./tools/checklists.js";
 import { registerConceptOfficeTools } from "./tools/conceptoffice.js";
 import { registerRmmTools } from "./tools/rmm.js";
 import { registerSearchTools } from "./tools/search.js";
+import { registerUserGroupTools } from "./tools/usergroups.js";
 
 const server = new McpServer({
   name: "visoma-tickets",
@@ -50,6 +51,7 @@ registerChecklistTools(server);
 registerConceptOfficeTools(server);
 registerRmmTools(server);
 registerSearchTools(server);
+registerUserGroupTools(server);
 
 const transport = new StdioServerTransport();
 await server.connect(transport);

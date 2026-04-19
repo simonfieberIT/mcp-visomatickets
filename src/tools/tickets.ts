@@ -100,4 +100,17 @@ export function registerTicketTools(server: McpServer) {
       return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
     }
   );
+
+  server.tool(
+    "check_ticket_lock",
+    "Prüft ob ein Ticket noch von einem bestimmten Benutzer gesperrt ist.",
+    {
+      id: z.number().describe("Ticket-ID"),
+      userId: z.number().describe("Benutzer-ID des Sperrenden"),
+    },
+    async ({ id, userId }) => {
+      const data = await apiPost("/api2/do/function/StillLocked", { Model: "ticket", Id: id, Lock: userId });
+      return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
+    }
+  );
 }
