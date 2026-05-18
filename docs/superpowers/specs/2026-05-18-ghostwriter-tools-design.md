@@ -72,6 +72,8 @@ class VisomaSession {
 ```
 
 ### `login()`
+Uses `VISOMA_BASE_URL` (existing env var, same domain as REST API).
+
 1. GET `{VISOMA_BASE_URL}/site/login` — store cookies, extract CSRF token from HTML
 2. POST `{VISOMA_BASE_URL}/site/login` with form body: `LoginForm[username]`, `LoginForm[password]`, `LoginForm[rememberMe]=1`, `YII_CSRF_TOKEN={csrfToken}`
 3. Expect HTTP 302. Store new cookies. Set `loggedIn = true`.
@@ -117,7 +119,8 @@ Returns unprocessed Ghostwriter entries (not yet released or closed).
 
 **Endpoint:** `GET /api2/ghostwriter/search/params[QueryLimit]/{limit}/` (limit default: 500)  
 **Auth:** REST token (via `apiGet`)  
-**Filter:** Optional `customer_id` appended to filter path  
+**Filter:** Optional `customer_id` appended to filter path. Example with both params:
+`/api2/ghostwriter/search/params[customerid]/42/params[QueryLimit]/500/`  
 **Client-side filter:** Keep only entries where `ininvoice === 0`
 
 Note: The `ininvoice` filter parameter is silently ignored by the Visoma API server — entries are returned regardless of filter value. Client-side filtering on `ininvoice === 0` is safe because the field is correctly set in the response. Default `QueryLimit: 500` covers typical day-end volumes (10–200 entries). This is documented in the tool description.
