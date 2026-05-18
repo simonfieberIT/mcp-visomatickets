@@ -23,15 +23,18 @@ import { registerConceptOfficeTools } from "./tools/conceptoffice.js";
 import { registerRmmTools } from "./tools/rmm.js";
 import { registerSearchTools } from "./tools/search.js";
 import { registerUserGroupTools } from "./tools/usergroups.js";
+import { VisomaSession } from "./session.js";
 
 const server = new McpServer({
   name: "visoma-tickets",
   version: "0.1.0",
 });
 
+const session = new VisomaSession();
+
 registerTicketTools(server);
 registerTimerTools(server);
-registerGhostwriterTools(server);
+registerGhostwriterTools(server, session);
 registerInvoiceTools(server);
 registerCustomerTools(server);
 registerContactTools(server);
