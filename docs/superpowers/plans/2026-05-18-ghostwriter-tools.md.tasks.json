@@ -1,0 +1,26 @@
+{
+  "planPath": "docs/superpowers/plans/2026-05-18-ghostwriter-tools.md",
+  "tasks": [
+    {
+      "id": 7,
+      "subject": "Task 1: src/session.ts — VisomaSession cookie-jar client",
+      "status": "pending",
+      "description": "**Goal:** Implement `VisomaSession` with Yii login, cookie-jar management, and form-encoded POSTs.\n\n**Files:**\n- Create: `src/session.ts`\n\n**Acceptance Criteria:**\n- [ ] `VisomaSession` and `SessionExpiredError` exported\n- [ ] `login()` GETs /site/login, extracts CSRF, POSTs credentials, stores Set-Cookie\n- [ ] `login()` throws if POST response is not HTTP 302\n- [ ] `ensureLoggedIn()` lazy + idempotent\n- [ ] `postForm()` sends correct Content-Type and X-Requested-With headers\n- [ ] `postForm()` auto-appends `_csrf` from cookie jar if present\n- [ ] `postForm()` throws `SessionExpiredError` on 302 → /site/login (checks Location header)\n- [ ] `npm run build` succeeds\n\n**Verify:** `npm run build` → exit 0\n\n```json:metadata\n{\"files\": [\"src/session.ts\"], \"verifyCommand\": \"npm run build\", \"acceptanceCriteria\": [\"VisomaSession exported\", \"SessionExpiredError exported\", \"login() handles CSRF and 302\", \"postForm() sends correct headers\", \"npm run build succeeds\"]}\n```"
+    },
+    {
+      "id": 8,
+      "subject": "Task 2: src/tools/ghostwriter.ts — four new Ghostwriter tools",
+      "status": "pending",
+      "blockedBy": [7],
+      "description": "**Goal:** Add ghostwriter_get_pending, set_ghostwriter_article, ghostwriter_close_timers, ghostwriter_release_timers to ghostwriter tool module.\n\n**Files:**\n- Modify: `src/tools/ghostwriter.ts`\n\n**Acceptance Criteria:**\n- [ ] registerGhostwriterTools accepts session: VisomaSession second param\n- [ ] ghostwriter_get_pending client-side filters ininvoice===0, QueryLimit default 500\n- [ ] set_ghostwriter_article calls session.postForm with pk/name/value\n- [ ] ghostwriter_close_timers two-step closewithoutinvoice, parses ticketids[] (no type restriction), retries once on SessionExpiredError\n- [ ] ghostwriter_release_timers two-step addtoque, HTML-entity-decodes Ghostwriter[amounts], retries once on SessionExpiredError\n- [ ] Both two-step tools accept optional returnUrl (default \"6a0ada08876a2\")\n- [ ] npm run build succeeds\n\n**Verify:** `npm run build` → exit 0\n\n```json:metadata\n{\"files\": [\"src/tools/ghostwriter.ts\"], \"verifyCommand\": \"npm run build\", \"acceptanceCriteria\": [\"registerGhostwriterTools(server, session) signature\", \"ghostwriter_get_pending with client-side filter\", \"set_ghostwriter_article\", \"ghostwriter_close_timers two-step\", \"ghostwriter_release_timers two-step with HTML-entity-decode\"]}\n```"
+    },
+    {
+      "id": 9,
+      "subject": "Task 3: Wire session into src/index.ts and update .env.example",
+      "status": "pending",
+      "blockedBy": [8],
+      "description": "**Goal:** Create VisomaSession singleton, inject into registerGhostwriterTools, document 2FA service account in .env.example.\n\n**Files:**\n- Modify: `src/index.ts`\n- Modify: `.env.example`\n\n**Acceptance Criteria:**\n- [ ] VisomaSession imported and instantiated in src/index.ts\n- [ ] registerGhostwriterTools(server, session) called with session\n- [ ] All other registerX(server) calls unchanged\n- [ ] .env.example USERNAME/PASSWORD comment mentions service account + 2FA disabled\n- [ ] npm run build succeeds\n\n**Verify:** `npm run build` → exit 0\n\n```json:metadata\n{\"files\": [\"src/index.ts\", \".env.example\"], \"verifyCommand\": \"npm run build\", \"acceptanceCriteria\": [\"VisomaSession instance in index.ts\", \"registerGhostwriterTools called with session\", \"2FA note in .env.example\", \"npm run build succeeds\"]}\n```"
+    }
+  ],
+  "lastUpdated": "2026-05-18T12:00:00Z"
+}
