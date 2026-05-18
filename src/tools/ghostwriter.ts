@@ -115,9 +115,11 @@ export function registerGhostwriterTools(server: McpServer, session: VisomaSessi
 
         const step1 = await session.postForm(path, step1Params);
 
-        // Parse ticketids[] — no type restriction (can be text or hidden input)
-        const ticketIdMatches = [...step1.body.matchAll(/name="ticketids\[\]"[^>]*value="(\d+)"/g)];
-        const ticketIds = ticketIdMatches.map((m) => m[1]);
+        // Parse ticketids[] — attribute-order-independent
+        const ticketIds = [...step1.body.matchAll(/<input\b[^>]*>/g)]
+          .filter((m) => /name="ticketids\[\]"/.test(m[0]))
+          .map((m) => m[0].match(/value="(\d+)"/)?.[1])
+          .filter((v): v is string => v !== undefined);
 
         if (ticketIds.length === 0) {
           throw new Error(
@@ -198,17 +200,19 @@ export function registerGhostwriterTools(server: McpServer, session: VisomaSessi
 
         const step1 = await session.postForm(path, step1Params);
 
-        // Parse Ghostwriter[amounts] — value is HTML-entity-encoded JSON
+        // Parse Ghostwriter[amounts] — attribute-order-independent
         // e.g. value="{&quot;13001&quot;:&quot;2.50&quot;}"
-        const amountsMatch = step1.body.match(/name="Ghostwriter\[amounts\]"[^>]*value="([^"]*)"/);
-        if (!amountsMatch) {
+        const amountsInputs = [...step1.body.matchAll(/<input\b[^>]*>/g)]
+          .find((m) => /name="Ghostwriter\[amounts\]"/.test(m[0]));
+        const rawAmountsValue = amountsInputs?.[0]?.match(/value="([^"]*)"/)?.[1];
+        if (rawAmountsValue === undefined) {
           throw new Error(
             "Ghostwriter[amounts] nicht im Step-1-Response gefunden. " +
             "Prüfe ob die Timer-IDs im Ghostwriter sichtbar sind und der returnUrl-Hash korrekt ist."
           );
         }
         // HTML-entity-decode before passing to step 2
-        const amountsJson = amountsMatch[1]
+        const amountsJson = rawAmountsValue
           .replace(/&quot;/g, '"')
           .replace(/&amp;/g, "&")
           .replace(/&#39;/g, "'")
