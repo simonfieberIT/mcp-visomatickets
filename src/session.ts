@@ -85,10 +85,11 @@ export class VisomaSession {
   ): Promise<{ status: number; body: string }> {
     if (!BASE_URL) throw new Error("VISOMA_BASE_URL is required");
 
-    // Auto-append _csrf from cookie jar if available
+    // Auto-append _csrf from cookie jar if available — work on a copy, don't mutate caller's params
+    const formBody = new URLSearchParams(params);
     const csrfCookie = this.cookies["YII_CSRF_TOKEN"];
-    if (csrfCookie && !params.has("_csrf")) {
-      params.append("_csrf", csrfCookie);
+    if (csrfCookie && !formBody.has("_csrf")) {
+      formBody.append("_csrf", csrfCookie);
     }
 
     const res = await fetch(`${BASE_URL}${path}`, {
@@ -99,7 +100,7 @@ export class VisomaSession {
         "X-Requested-With": "XMLHttpRequest",
         Cookie: this.cookieHeader(),
       },
-      body: params.toString(),
+      body: formBody.toString(),
     });
     this.mergeCookies(
       (res.headers as Headers & { getSetCookie(): string[] }).getSetCookie?.() ?? []
