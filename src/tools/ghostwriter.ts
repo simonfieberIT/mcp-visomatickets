@@ -43,7 +43,8 @@ export function registerGhostwriterTools(server: McpServer, session: VisomaSessi
       // Normalise: API may return array directly or { data: [...] }
       const rows = Array.isArray(data) ? data : (data as { data?: unknown[] }).data ?? [];
       const pending = (rows as Array<Record<string, unknown>>).filter(
-        (row) => row["ininvoice"] === 0 || row["ininvoice"] === "0"
+        // ininvoice: 0/"0"/false = not yet processed; true/1/"1" = already in invoice queue
+        (row) => row["ininvoice"] === 0 || row["ininvoice"] === "0" || row["ininvoice"] === false
       );
       return {
         content: [{
@@ -133,7 +134,13 @@ export function registerGhostwriterTools(server: McpServer, session: VisomaSessi
         });
         ticketIds.forEach((id) => step2Params.append("ticketids[]", id));
 
-        await session.postForm(path, step2Params);
+        const step2 = await session.postForm(path, step2Params);
+        if (step2.body && step2.body.trim().length > 0) {
+          const lower = step2.body.toLowerCase();
+          if (lower.includes("error") || lower.includes("fehler") || lower.includes("exception")) {
+            throw new Error(`Visoma returned error in step-2 response: ${step2.body.slice(0, 300)}`);
+          }
+        }
         return timer_ids;
       };
 
@@ -216,7 +223,13 @@ export function registerGhostwriterTools(server: McpServer, session: VisomaSessi
           returnUrl,
         });
 
-        await session.postForm(path, step2Params);
+        const step2 = await session.postForm(path, step2Params);
+        if (step2.body && step2.body.trim().length > 0) {
+          const lower = step2.body.toLowerCase();
+          if (lower.includes("error") || lower.includes("fehler") || lower.includes("exception")) {
+            throw new Error(`Visoma returned error in step-2 response: ${step2.body.slice(0, 300)}`);
+          }
+        }
         return timerIds;
       };
 
